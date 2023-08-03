@@ -9,6 +9,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -19,11 +20,13 @@ import com.sevdetneng.notesapp.model.Note
 import com.sevdetneng.notesapp.screen.NoteScreen
 import com.sevdetneng.notesapp.screen.NoteScreenViewModel
 import com.sevdetneng.notesapp.ui.theme.NotesAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val noteViewModel : NoteScreenViewModel by viewModels<NoteScreenViewModel>()
+        val noteViewModel : NoteScreenViewModel by viewModels()
         setContent {
             NotesAppTheme {
                 notesApp(noteViewModel)
@@ -34,7 +37,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun notesApp(viewModel : NoteScreenViewModel = viewModel()){
-    val notes = viewModel.getList()
+    val notes = viewModel.noteList.collectAsState().value
     NoteScreen(notes = notes, onAddNote = {
         viewModel.addNote(it)
     }, onRemoveNote = {
@@ -43,6 +46,8 @@ fun notesApp(viewModel : NoteScreenViewModel = viewModel()){
         if(viewModel.removedNote.title != ""){
             viewModel.restoreNote(viewModel.removedNote)
         }
+    }, onUpdateNote = {
+        viewModel.updateNote(it)
     })
 }
 

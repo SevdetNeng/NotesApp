@@ -2,13 +2,13 @@ package com.sevdetneng.notesapp.components
 
 import android.graphics.Paint.Align
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,7 +23,8 @@ import com.sevdetneng.notesapp.model.Note
 @Composable
 fun NoteRow(note : Note = Note(title = "Note", description = "Note Desc"),
             modifier: Modifier = Modifier,
-            onNoteClicked : (Note) -> Unit = {}
+            onNoteClicked : (Note) -> Unit = {},
+            onEditClicked : (Note) -> Unit = {}
 ){
     Card(shape = RoundedCornerShape(8.dp),
         modifier = Modifier
@@ -37,8 +38,21 @@ fun NoteRow(note : Note = Note(title = "Note", description = "Note Desc"),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
         ){
-            Text(note.title, fontWeight = FontWeight.Normal, fontSize = 12.sp)
-            Text(note.description, fontWeight = FontWeight.Light, fontSize = 16.sp)
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                .fillMaxWidth()){
+                Column(){
+                    Text(note.title, fontWeight = FontWeight.Normal, fontSize = 12.sp)
+                    Text(note.description, fontWeight = FontWeight.Light, fontSize = 16.sp)
+                }
+                Icon(imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    modifier = Modifier.size(16.dp)
+                    .clickable {
+                        onEditClicked(note)
+                    })
+
+            }
+
         }
     }
 }

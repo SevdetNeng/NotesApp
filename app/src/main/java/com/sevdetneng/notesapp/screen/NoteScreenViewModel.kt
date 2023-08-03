@@ -2,24 +2,46 @@ package com.sevdetneng.notesapp.screen
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.sevdetneng.notesapp.model.Note
+import com.sevdetneng.notesapp.repository.NoteRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class NoteScreenViewModel : ViewModel() {
-    private var noteList = mutableStateListOf<Note>()
-    public var removedNote = Note(title = "", description = "")
+@HiltViewModel
+class NoteScreenViewModel @Inject constructor(val noteRepository: NoteRepository) : ViewModel() {
+    //private var noteList = mutableStateListOf<Note>()
+    var removedNote = Note(title = "", description = "")
+    private val _noteList = MutableStateFlow<List<Note>>(emptyList())
+    val noteList = _noteList.asStateFlow()
 
-    fun addNote(note : Note){
-        noteList.add(note)
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            noteRepository.getAllNotes().distinctUntilChanged()
+                .collect{ listOfNotes ->
+                        _noteList.value = listOfNotes
+                }
+        }
     }
-    fun removeNote(note : Note){
-        noteList.remove(note)
+
+    fun addNote(note : Note) = viewModelScope.launch { noteRepository.addNote(note) }
+
+    fun removeNote(note : Note) = viewModelScope.launch {
+        noteRepository.deleteNote(note)
         removedNote = note
     }
-    fun getList() : List<Note> {
-        return noteList
-    }
-    fun restoreNote(note : Note){
-        addNote(removedNote)
+
+    fun updateNote(note : Note) = viewModelScope.launch { noteRepository.updateNote(note) }
+
+    fun restoreNote(note : Note) = viewModelScope.launch {
+        noteRepository.addNote(note)
         removedNote = Note(title = "", description = "")
     }
+
 }

@@ -28,11 +28,14 @@ import com.sevdetneng.notesapp.model.Note
 fun NoteScreen(notes : List<Note>,
                onAddNote : (Note) -> Unit,
                onRemoveNote : (Note) -> Unit,
-               onRestoreNote : () -> Unit
+               onRestoreNote : () -> Unit,
+               onUpdateNote : (Note) -> Unit
 ){
     var noteNameState by remember { mutableStateOf("") }
     var noteDescriptionState by remember { mutableStateOf("") }
     val context = LocalContext.current
+    var noteButtonState by remember { mutableStateOf("Save Note") }
+    var editNoteState by remember { mutableStateOf(Note(title = "", description = "")) }
     Scaffold(topBar = {
 //        TopAppBar(backgroundColor = Color.Gray, ){
 //            Text("Notes", fontSize = 24.sp)
@@ -49,7 +52,7 @@ fun NoteScreen(notes : List<Note>,
             )
         },
         backgroundColor = Color.Gray)
-    }) {
+    }) { padding ->
         Column(horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
         modifier = Modifier
@@ -65,25 +68,41 @@ fun NoteScreen(notes : List<Note>,
 
             } )
             Spacer(Modifier.height(16.dp))
-            NoteButton(text = "Save Note", enabled = true, onClick = {
+            NoteButton(text = noteButtonState, enabled = true, onClick = {
                 if(noteNameState.isNotEmpty() && noteDescriptionState.isNotEmpty()){
-                    val note = Note(title = noteNameState, description = noteDescriptionState)
-                    onAddNote(note)
-                    noteDescriptionState = ""
-                    noteNameState = ""
+                    if(noteButtonState=="Save Note"){
+                        val note = Note(title = noteNameState, description = noteDescriptionState)
+                        onAddNote(note)
+                        noteDescriptionState = ""
+                        noteNameState = ""
+                        Toast.makeText(context,"Note Added!",Toast.LENGTH_LONG).show()
+                    }
+                    else{
+                        editNoteState = editNoteState.copy(title = noteNameState, description = noteDescriptionState)
+                        onUpdateNote(editNoteState)
+                        noteDescriptionState = ""
+                        noteNameState = ""
+                        noteButtonState = "Save Note"
+                        Toast.makeText(context,"Note Edited!",Toast.LENGTH_LONG).show()
+                    }
+
                 }
-                Toast.makeText(context,"Note Added!",Toast.LENGTH_LONG).show()
+
             } )
             Divider(modifier = Modifier.padding(10.dp))
             LazyColumn{
                 items(notes){ note ->
                     NoteRow(note, onNoteClicked = { note ->
                         onRemoveNote(note)
+                    }, onEditClicked = {
+                        noteButtonState = "Update"
+                        noteNameState = note.title
+                        noteDescriptionState = note.description
+                        editNoteState = note
                     })
                 }
             }
         }
-
 
     }
 }
@@ -91,5 +110,5 @@ fun NoteScreen(notes : List<Note>,
 @Preview(showSystemUi = true)
 @Composable
 fun NoteScreenPreview(){
-    NoteScreen(notes = NotesDataSource().loadNotes(), onAddNote = {}, onRemoveNote = {}, onRestoreNote = {})
+    NoteScreen(notes = NotesDataSource().loadNotes(), onAddNote = {}, onRemoveNote = {}, onRestoreNote = {}, onUpdateNote = {})
 }
